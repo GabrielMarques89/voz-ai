@@ -1,4 +1,4 @@
-package org.gmarques.model.openai.functions;
+package org.gmarques.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

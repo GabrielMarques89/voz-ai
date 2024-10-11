@@ -1,4 +1,4 @@
-package org.gmarques.model.openai.functions;
+package org.gmarques.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,7 +8,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Map;
-import org.gmarques.model.openai.interfaces.FunctionInterface;
 import org.gmarques.model.openai.objects.Tool;
 
 public class DigitarTexto extends FunctionBase {

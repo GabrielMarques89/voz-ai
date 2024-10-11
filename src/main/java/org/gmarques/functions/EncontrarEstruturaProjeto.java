@@ -1,13 +1,11 @@
-package org.gmarques.model.openai.functions;
+package org.gmarques.functions;
 
 
 import static org.gmarques.model.openai.client.OpenAIService.callOpenAiChat;
 import static org.gmarques.util.FileHelper.abrirArquivoNoIntelliJ;
-import static org.gmarques.util.ProjectRegistry.getFolderStructure;
 import static org.gmarques.util.ProjectRegistry.getProjectPath;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,8 +13,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
 import org.gmarques.model.openai.objects.Tool;
 import org.gmarques.util.ProjectRegistry;
@@ -92,7 +88,7 @@ public class EncontrarEstruturaProjeto extends FunctionBase {
         nome_arquivo, folderStructureWithFiles
     );
 
-    var response = callOpenAiChat(prompt);
+    var response = callOpenAiChat(prompt, "chat");
 
     System.out.println("Resposta com o nome do arquivo: " + response);
 
@@ -107,7 +103,7 @@ public class EncontrarEstruturaProjeto extends FunctionBase {
         descricao_alteracao, conteudoArquivo
     );
 
-    var refactoredContent = callOpenAiChat(promptAlteracao);
+    var refactoredContent = callOpenAiChat(promptAlteracao, "chat");
     Files.writeString(targetFilePath, refactoredContent, StandardOpenOption.TRUNCATE_EXISTING);
 
     System.out.println("Alterações realizadas com sucesso no arquivo: " + targetFilePath.toString());

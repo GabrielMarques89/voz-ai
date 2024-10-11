@@ -31,7 +31,7 @@ public class GlobalShortcutListener implements NativeKeyListener {
   @Override
   public void nativeKeyPressed(NativeKeyEvent nativeKeyEvent) {
 
-    if (nativeKeyEvent.getKeyCode() == NativeKeyEvent.VC_F12) {
+    if (nativeKeyEvent.getKeyCode() == NativeKeyEvent.VC_F4) {
       toggleCallback.run();
     }
   }

@@ -1,4 +1,4 @@
-package org.gmarques.model.openai.functions;
+package org.gmarques.functions;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;

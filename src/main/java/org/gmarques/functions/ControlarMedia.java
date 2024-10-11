@@ -1,11 +1,10 @@
-package org.gmarques.model.openai.functions;
+package org.gmarques.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.jna.platform.win32.WinDef.WORD;
 import java.util.List;
 import java.util.Map;
-import org.gmarques.model.openai.interfaces.FunctionInterface;
 import org.gmarques.model.openai.objects.Tool;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.DWORD;

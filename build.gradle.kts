@@ -18,9 +18,11 @@ dependencies {
     implementation("com.1stleg:jnativehook:2.0.2")
     implementation("org.projectlombok:lombok:1.18.34")
     annotationProcessor("org.projectlombok:lombok:1.18.34")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation("org.reflections:reflections:0.10.2")
 
     implementation("net.java.dev.jna:jna-platform:5.12.1")
-    
+
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

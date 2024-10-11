@@ -1,4 +1,4 @@
-package org.gmarques.model.openai.functions;
+package org.gmarques.functions;
 
 
 import static org.gmarques.model.openai.client.OpenAIService.callOpenAiChat;
@@ -9,7 +9,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.SneakyThrows;
-import okhttp3.OkHttpClient;
 import org.gmarques.model.openai.objects.Tool;
 
 import java.nio.file.Files;
@@ -112,7 +111,7 @@ public class CriarArquivoCodigo extends FunctionBase {
               descricao, folderStructure
           );
 
-          var response = callOpenAiChat(prompt);
+          var response = callOpenAiChat(prompt, "chat");
           try {
             JsonNode resultJson = mapper().readTree(response);
 

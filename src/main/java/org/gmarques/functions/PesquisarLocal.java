@@ -1,4 +1,4 @@
-package org.gmarques.model.openai.functions;
+package org.gmarques.functions;
 
 import java.util.List;
 import java.util.Map;

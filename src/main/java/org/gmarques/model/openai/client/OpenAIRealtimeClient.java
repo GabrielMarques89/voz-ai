@@ -11,7 +11,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 import org.gmarques.model.openai.events.SessionEvent;
-import org.gmarques.model.openai.functions.FunctionFactory;
+import org.gmarques.functions.FunctionFactory;
 import org.gmarques.model.openai.interfaces.FunctionInterface;
 import org.gmarques.model.openai.objects.Session;
 import org.gmarques.model.openai.objects.Tool;
