@@ -1,56 +1,117 @@
 package org.gmarques.service;
 
-import javax.sound.sampled.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.Mixer;
+import javax.sound.sampled.TargetDataLine;
+import lombok.Getter;
 
 public class AudioCapture {
-    private TargetDataLine line;
-    private AudioFormat format;
-    private boolean capturing;
-    private ByteArrayOutputStream out;
 
-    public AudioCapture() {
-        format = new AudioFormat(16000.0f, 16, 1, true, false);
+    private final TargetDataLine targetDataLine;
+    private final AudioFormat audioFormat;
+    private Thread captureThread;
+    private boolean running = false;
+    private final List<AudioDataListener> listeners = new ArrayList<>();
+  /**
+   * -- GETTER --
+   *  Returns the audio data queue for processing.
+   *
+   * @return BlockingQueue of audio data bytes.
+   */
+  @Getter
+  private final BlockingQueue<byte[]> audioQueue = new LinkedBlockingQueue<>();
+
+    public interface AudioDataListener {
+        void onAudioData(byte[] data);
     }
 
-    public void start() throws LineUnavailableException {
-        DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
-        if (!AudioSystem.isLineSupported(info)) {
-            throw new LineUnavailableException("The system does not support the specified format.");
-        }
-        line = (TargetDataLine) AudioSystem.getLine(info);
-        line.open(format);
-        line.start();
-        capturing = true;
-        out = new ByteArrayOutputStream();
-    }
+    /**
+     * Constructor to initialize AudioCapture with a specific AudioFormat.
+     *
+     * @param format Desired AudioFormat for capturing audio.
+     * @throws LineUnavailableException If the audio line cannot be opened.
+     */
+    public AudioCapture(AudioFormat format) throws LineUnavailableException {
+        this.audioFormat = format;
 
-    public byte[] read() throws IOException {
-        if (!capturing) {
-            return null;
-        }
-        byte[] buffer = new byte[4096];
-        int bytesRead = line.read(buffer, 0, buffer.length);
-        if (bytesRead > 0) {
-            out.write(buffer, 0, bytesRead);
-            return buffer;
-        }
-        return null;
-    }
-
-    public void stop() {
-        capturing = false;
-        if (line != null) {
-            line.stop();
-            line.close();
-        }
-        try {
-            if (out != null) {
-                out.close();
+        // Select the specific mixer for your microphone
+        Mixer.Info selectedMixerInfo = null;
+        Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
+        for (Mixer.Info mixerInfo : mixerInfos) {
+            if (mixerInfo.getName().contains("Trust GXT 232 Microphone")) {
+                selectedMixerInfo = mixerInfo;
+                break;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        }
+
+        if (selectedMixerInfo == null) {
+            throw new LineUnavailableException("Trust GXT 232 Microphone mixer not found.");
+        }
+
+        Mixer mixer = AudioSystem.getMixer(selectedMixerInfo);
+        DataLine.Info lineInfo = new DataLine.Info(TargetDataLine.class, audioFormat);
+
+        if (!mixer.isLineSupported(lineInfo)) {
+            throw new LineUnavailableException("The Trust GXT 232 Microphone does not support the specified format.");
+        }
+
+        targetDataLine = (TargetDataLine) mixer.getLine(lineInfo);
+        targetDataLine.open(audioFormat);
+    }
+
+    /**
+     * Adds an AudioDataListener to receive audio data.
+     *
+     * @param listener Listener to receive audio data.
+     */
+    public void addAudioDataListener(AudioDataListener listener) {
+        listeners.add(listener);
+    }
+
+  /**
+     * Starts the audio capture process.
+     */
+    public void start() {
+        targetDataLine.start();
+        running = true;
+
+        captureThread = new Thread(() -> {
+            byte[] buffer = new byte[1024];
+            while (running) {
+                int count = targetDataLine.read(buffer, 0, buffer.length);
+                if (count > 0) {
+                    byte[] data = new byte[count];
+                    System.arraycopy(buffer, 0, data, 0, count);
+                    // Notify all listeners
+                    for (AudioDataListener listener : listeners) {
+                        listener.onAudioData(data);
+                    }
+                    // Add to queue for recording
+                    audioQueue.offer(data);
+                }
+            }
+        });
+        captureThread.start();
+    }
+
+    /**
+     * Stops the audio capture process.
+     */
+    public void stop() {
+        running = false;
+        targetDataLine.stop();
+        targetDataLine.close();
+        try {
+            captureThread.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }

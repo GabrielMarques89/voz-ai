@@ -1,15 +1,24 @@
 package org.gmarques;
 
 import static org.gmarques.config.ApiKeyLoader.loadApiKey;
+import static org.gmarques.config.ApiKeyLoader.loadPorcupineApiKey;
 
+import ai.picovoice.porcupine.Porcupine.BuiltInKeyword;
+import ai.picovoice.porcupine.PorcupineException;
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.LineUnavailableException;
+import lombok.SneakyThrows;
 import org.gmarques.model.openai.client.OpenAIRealtimeClient;
 import org.gmarques.service.AudioCapture;
 import org.gmarques.util.Constants;
 import org.gmarques.util.GlobalShortcutListener;
 import org.gmarques.util.TrayIconManager;
+import org.gmarques.util.WakeWordListener;
 
 public class Main {
 
@@ -17,16 +26,25 @@ public class Main {
   private static OpenAIRealtimeClient client;
   private static AudioCapture audioCapture;
   private static Thread recordingThread;
+  private static WakeWordListener wakeWordListener;
+  private static TrayIconManager trayIconManager;
 
   public static void main(String[] args) {
-    TrayIconManager trayIconManager = new TrayIconManager(Main::toggleRecording);
+    trayIconManager = new TrayIconManager(e -> toggleRecording());
     GlobalShortcutListener shortcutListener = new GlobalShortcutListener(trayIconManager::toggle);
 
     initializeWebSocket();
+    initializeWakeWordListener();
 
-    System.out.println("Audio Tray App is running. Press F12 to toggle recording.");
+    // Adiciona um hook de shutdown para garantir a limpeza dos recursos
+    Runtime.getRuntime().addShutdownHook(new Thread(Main::shutdown));
+
+    System.out.println("Audio Tray App está em execução. Diga 'Jarvis' ou pressione F12 para alternar a gravação.");
   }
 
+  /**
+   * Inicializa a conexão WebSocket com a API do OpenAI.
+   */
   private static void initializeWebSocket() {
     String url = Constants.API_URL;
     try {
@@ -37,58 +55,106 @@ public class Main {
 
       client = new OpenAIRealtimeClient(uri, headers);
       client.connectBlocking();
-      System.out.println("WebSocket connection established.");
+      System.out.println("Conexão WebSocket estabelecida.");
     } catch (Exception e) {
-      System.err.println("Failed to establish WebSocket connection:");
+      System.err.println("Falha ao estabelecer a conexão WebSocket:");
       e.printStackTrace();
     }
   }
 
-  private static synchronized void toggleRecording() {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
+  /**
+   * Inicializa o listener para a palavra de ativação "Jarvis".
+   */
+  @SneakyThrows
+  private static void initializeWakeWordListener() {
+    String accessKey = loadPorcupineApiKey();
+
+    try {
+      wakeWordListener = new WakeWordListener(accessKey, BuiltInKeyword.JARVIS, Main::toggleRecordingWithTimer);
+      audioCapture = new AudioCapture(new AudioFormat(
+          16000.0f, // Sample rate
+          16,       // Sample size in bits
+          1,        // Channels (mono)
+          true,     // Signed
+          false     // Little-endian
+      ));
+      audioCapture.addAudioDataListener(wakeWordListener);
+      audioCapture.start();
+    } catch (PorcupineException | IOException | LineUnavailableException e) {
+      System.err.println("Falha ao inicializar o listener da palavra de ativação:");
+      e.printStackTrace();
     }
   }
 
+  /**
+   * Alterna o estado de gravação e atualiza o TrayIcon.
+   */
+  private static synchronized void toggleRecording() {
+    if (isRecording) {
+      stopRecording();
+      trayIconManager.updateIcon(false); // Atualiza o ícone para estado inativo
+    } else {
+      startRecording();
+      trayIconManager.updateIcon(true); // Atualiza o ícone para estado ativo
+    }
+  }
+
+  /**
+   * Alterna a gravação e define um temporizador para parar após 15 segundos.
+   */
+  private static synchronized void toggleRecordingWithTimer() {
+    toggleRecording();
+
+    // Se a gravação foi iniciada, define um temporizador para parar após 15 segundos
+    if (isRecording) {
+      new Thread(() -> {
+        try {
+          Thread.sleep(15000); // 15 segundos
+          stopRecording();
+          trayIconManager.updateIcon(false); // Atualiza o ícone para estado inativo
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }).start();
+    }
+  }
+
+  /**
+   * Inicia a gravação de áudio e envia para o WebSocket.
+   */
   private static void startRecording() {
     try {
-      audioCapture = new AudioCapture();
-      audioCapture.start();
       isRecording = true;
 
       recordingThread = new Thread(() -> {
+        BlockingQueue<byte[]> queue = audioCapture.getAudioQueue();
         try {
           while (client.isOpen() && isRecording) {
-            byte[] audioData = audioCapture.read();
-            if (audioData != null) {
-              client.sendAudio(audioData);
-            }
-            Thread.sleep(10);
+            byte[] audioData = queue.take(); // Bloqueia até obter dados
+            client.sendAudio(audioData);
           }
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
         } catch (Exception e) {
-          System.err.println("An error occurred during recording:");
+          System.err.println("Ocorreu um erro durante a gravação:");
           e.printStackTrace();
         } finally {
           stopRecording();
         }
       });
       recordingThread.start();
+      System.out.println("Gravação iniciada.");
     } catch (Exception e) {
-      System.err.println("Failed to start recording:");
+      System.err.println("Falha ao iniciar a gravação:");
       e.printStackTrace();
     }
   }
 
+  /**
+   * Para a gravação de áudio.
+   */
   private static void stopRecording() {
     isRecording = false;
-    if (audioCapture != null) {
-      audioCapture.stop();
-      audioCapture = null;
-      System.out.println("Audio capture stopped.");
-    }
     if (recordingThread != null) {
       recordingThread.interrupt();
       try {
@@ -98,18 +164,28 @@ public class Main {
       }
       recordingThread = null;
     }
+    System.out.println("Gravação parada.");
   }
 
+  /**
+   * Limpa e encerra todos os recursos utilizados pela aplicação.
+   */
   public static void shutdown() {
     stopRecording();
     if (client != null) {
       try {
         client.closeBlocking();
         client = null;
-        System.out.println("WebSocket connection closed.");
+        System.out.println("Conexão WebSocket fechada.");
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
+    }
+    if (wakeWordListener != null) {
+      wakeWordListener.stop();
+    }
+    if (audioCapture != null) {
+      audioCapture.stop();
     }
   }
 }

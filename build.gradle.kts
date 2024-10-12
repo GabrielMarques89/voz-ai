@@ -20,6 +20,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.34")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("org.reflections:reflections:0.10.2")
+    implementation("ai.picovoice:porcupine-java:3.0.3")
 
     implementation("net.java.dev.jna:jna-platform:5.12.1")
 

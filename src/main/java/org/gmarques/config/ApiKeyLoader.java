@@ -14,12 +14,11 @@ public class ApiKeyLoader {
         return properties.getProperty("api.key");
     }
 
-    public static void main(String[] args) {
-        try {
-            String apiKey = loadApiKey();
-            System.out.println("API Key: " + apiKey);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static String loadPorcupineApiKey() throws IOException {
+        Properties properties = new Properties();
+        try (FileInputStream input = new FileInputStream("src/main/resources/config.properties")) {
+            properties.load(input);
         }
+        return properties.getProperty("porcupine.api.key");
     }
 }

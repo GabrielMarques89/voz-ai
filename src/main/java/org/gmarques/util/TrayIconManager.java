@@ -1,58 +1,61 @@
 package org.gmarques.util;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.event.ActionEvent;
+import java.awt.AWTException;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.imageio.ImageIO;
 
 public class TrayIconManager {
+
     private TrayIcon trayIcon;
-    private boolean isOn;
+    private final Image iconInactive;
+    private final Image iconActive;
+    private boolean isActive;
+    private final ActionListener toggleAction;
 
-    private Runnable toggleCallback;
+    /**
+     * Construtor que inicializa o TrayIcon com os ícones e a ação de toggle.
+     *
+     * @param toggleAction Ação a ser executada quando o ícone for clicado.
+     */
+    public TrayIconManager(ActionListener toggleAction) {
+        this.toggleAction = toggleAction;
+        isActive = false;
 
-    public TrayIconManager(Runnable toggleCallback) {
-        this.toggleCallback = toggleCallback;
-        isOn = false;
-        setupTrayIcon();
-    }
+        // Carregue seus ícones aqui. Certifique-se de que os caminhos estejam corretos.
+        iconInactive = loadImage("off.ico");
+        iconActive = loadImage("on.ico");
 
-    private void setupTrayIcon() {
         if (!SystemTray.isSupported()) {
-            System.out.println("System tray not supported!");
+            System.err.println("System tray não é suportado.");
             return;
         }
 
-        SystemTray tray = SystemTray.getSystemTray();
-        Image image = loadImage("off.ico");
+        trayIcon = new TrayIcon(iconInactive, "Audio Tray App");
+        trayIcon.setImageAutoSize(true);
 
+        // Adiciona um menu popup com uma opção para sair
         PopupMenu popup = new PopupMenu();
-
-        MenuItem toggleItem = new MenuItem("Turn On");
-        toggleItem.addActionListener((ActionEvent e) -> {
-            toggle();
-        });
-
         MenuItem exitItem = new MenuItem("Exit");
-        exitItem.addActionListener((ActionEvent e) -> {
+        exitItem.addActionListener(e -> {
+            // Encerra a aplicação
             System.exit(0);
         });
-
-        popup.add(toggleItem);
-        popup.addSeparator();
         popup.add(exitItem);
+        trayIcon.setPopupMenu(popup);
 
-        trayIcon = new TrayIcon(image, "Audio Tray App", popup);
-        trayIcon.setImageAutoSize(true);
-        trayIcon.addActionListener((ActionEvent e) -> {
-            toggle();
-        });
+        trayIcon.addActionListener(toggleAction);
 
         try {
-            tray.add(trayIcon);
+            SystemTray.getSystemTray().add(trayIcon);
         } catch (AWTException e) {
-            System.out.println("TrayIcon could not be added.");
+            System.err.println("Falha ao adicionar o tray icon:");
             e.printStackTrace();
         }
     }
@@ -71,17 +74,22 @@ public class TrayIconManager {
         }
     }
 
+    /**
+     * Alterna o estado do ícone (ativo/inativo).
+     */
     public void toggle() {
-        isOn = !isOn;
-        if (isOn) {
-            trayIcon.setImage(loadImage("on.ico"));
-        } else {
-            trayIcon.setImage(loadImage("off.ico"));
-        }
-        toggleCallback.run();
+        isActive = !isActive;
+        updateIcon(isActive);
     }
 
-    public boolean isOn() {
-        return isOn;
+    /**
+     * Atualiza o ícone baseado no estado de gravação.
+     *
+     * @param active Se o estado é ativo (gravação em andamento).
+     */
+    public void updateIcon(boolean active) {
+        isActive = active;
+        trayIcon.setImage(isActive ? iconActive : iconInactive);
+        trayIcon.setToolTip(isActive ? "Audio Tray App - Gravação Ativa" : "Audio Tray App");
     }
 }
