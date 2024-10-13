@@ -1,5 +1,7 @@
 package org.gmarques.util;
 
+import static org.gmarques.Main.toggleRecording;
+
 import java.awt.AWTException;
 import java.awt.Image;
 import java.awt.MenuItem;
@@ -79,6 +81,7 @@ public class TrayIconManager {
      */
     public void toggle() {
         isActive = !isActive;
+        toggleRecording();
         updateIcon(isActive);
     }
 

@@ -36,7 +36,6 @@ public class Main {
     initializeWebSocket();
     initializeWakeWordListener();
 
-    // Adiciona um hook de shutdown para garantir a limpeza dos recursos
     Runtime.getRuntime().addShutdownHook(new Thread(Main::shutdown));
 
     System.out.println("Audio Tray App está em execução. Diga 'Jarvis' ou pressione F12 para alternar a gravação.");
@@ -73,10 +72,10 @@ public class Main {
       wakeWordListener = new WakeWordListener(accessKey, BuiltInKeyword.JARVIS, Main::toggleRecordingWithTimer);
       audioCapture = new AudioCapture(new AudioFormat(
           16000.0f, // Sample rate
-          16,       // Sample size in bits
-          1,        // Channels (mono)
-          true,     // Signed
-          false     // Little-endian
+          16,
+          1,
+          true,
+          false
       ));
       audioCapture.addAudioDataListener(wakeWordListener);
       audioCapture.start();
@@ -89,13 +88,13 @@ public class Main {
   /**
    * Alterna o estado de gravação e atualiza o TrayIcon.
    */
-  private static synchronized void toggleRecording() {
+  public static synchronized void toggleRecording() {
     if (isRecording) {
       stopRecording();
-      trayIconManager.updateIcon(false); // Atualiza o ícone para estado inativo
+      trayIconManager.updateIcon(false);
     } else {
       startRecording();
-      trayIconManager.updateIcon(true); // Atualiza o ícone para estado ativo
+      trayIconManager.updateIcon(true);
     }
   }
 
@@ -105,7 +104,6 @@ public class Main {
   private static synchronized void toggleRecordingWithTimer() {
     toggleRecording();
 
-    // Se a gravação foi iniciada, define um temporizador para parar após 15 segundos
     if (isRecording) {
       new Thread(() -> {
         try {
@@ -120,7 +118,7 @@ public class Main {
   }
 
   /**
-   * Inicia a gravação de áudio e envia para o WebSocket.
+   * Inicia a gravação de áudio e envia para o WebSocket (openAI)
    */
   private static void startRecording() {
     try {
@@ -130,7 +128,7 @@ public class Main {
         BlockingQueue<byte[]> queue = audioCapture.getAudioQueue();
         try {
           while (client.isOpen() && isRecording) {
-            byte[] audioData = queue.take(); // Bloqueia até obter dados
+            byte[] audioData = queue.take();
             client.sendAudio(audioData);
           }
         } catch (InterruptedException e) {

@@ -1,28 +1,28 @@
 package org.gmarques.model.openai.client;
 
-import static org.gmarques.util.Constants.*;
+import static org.gmarques.util.Constants.DEFAULT_INSTRUCTIONS;
+import static org.gmarques.util.Constants.FUNCTION_CALL;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.net.URI;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
-import org.gmarques.model.openai.events.SessionEvent;
 import org.gmarques.functions.FunctionFactory;
+import org.gmarques.model.openai.events.SessionEvent;
 import org.gmarques.model.openai.interfaces.FunctionInterface;
 import org.gmarques.model.openai.objects.Session;
 import org.gmarques.model.openai.objects.Tool;
 import org.gmarques.service.AudioPlay;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import java.net.URI;
-import java.util.Map;
 
 public class OpenAIRealtimeClient extends WebSocketClient {
 
@@ -135,7 +135,9 @@ public class OpenAIRealtimeClient extends WebSocketClient {
         case "response.create":
 
           break;
-
+        case "error":
+          System.out.println("Erro: " + event.get("message").asText());
+          break;
         case "conversation.item.created":
           JsonNode item = event.get("item");
           if (item != null && "message".equals(item.get("type").asText())) {
@@ -176,7 +178,6 @@ public class OpenAIRealtimeClient extends WebSocketClient {
           if (audioLine != null && audioLine.isOpen()) {
             audioLine.drain();
             audioLine.close();
-
           }
           break;
         default:
