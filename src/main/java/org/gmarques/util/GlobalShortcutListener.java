@@ -1,11 +1,10 @@
 package org.gmarques.util;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class GlobalShortcutListener implements NativeKeyListener {
 
@@ -31,7 +30,7 @@ public class GlobalShortcutListener implements NativeKeyListener {
   @Override
   public void nativeKeyPressed(NativeKeyEvent nativeKeyEvent) {
 
-    if (nativeKeyEvent.getKeyCode() == NativeKeyEvent.VC_F4) {
+    if (nativeKeyEvent.getKeyCode() == NativeKeyEvent.VC_F13) {
       toggleCallback.run();
     }
   }

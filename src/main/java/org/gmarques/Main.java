@@ -6,12 +6,14 @@ import static org.gmarques.config.ApiKeyLoader.loadPorcupineApiKey;
 import ai.picovoice.porcupine.Porcupine.BuiltInKeyword;
 import ai.picovoice.porcupine.PorcupineException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.LineUnavailableException;
+import javazoom.jl.player.Player;
 import lombok.SneakyThrows;
 import org.gmarques.model.openai.client.OpenAIRealtimeClient;
 import org.gmarques.service.AudioCapture;
@@ -34,8 +36,6 @@ public class Main {
     GlobalShortcutListener shortcutListener = new GlobalShortcutListener(trayIconManager::toggle);
 
     initializeWebSocket();
-    initializeWakeWordListener();
-
     Runtime.getRuntime().addShutdownHook(new Thread(Main::shutdown));
 
     System.out.println("Audio Tray App está em execução. Diga 'Jarvis' ou pressione F12 para alternar a gravação.");
@@ -45,7 +45,7 @@ public class Main {
    * Inicializa a conexão WebSocket com a API do OpenAI.
    */
   private static void initializeWebSocket() {
-    String url = Constants.API_URL;
+    String url = Constants.VOICE_MODEL_URL;
     try {
       URI uri = new URI(url);
       Map<String, String> headers = new HashMap<>();
@@ -71,7 +71,7 @@ public class Main {
     try {
       wakeWordListener = new WakeWordListener(accessKey, BuiltInKeyword.JARVIS, Main::toggleRecordingWithTimer);
       audioCapture = new AudioCapture(new AudioFormat(
-          16000.0f, // Sample rate
+          16000.0f,
           16,
           1,
           true,
@@ -90,6 +90,7 @@ public class Main {
    */
   public static synchronized void toggleRecording() {
     if (isRecording) {
+      sayHi();
       stopRecording();
       trayIconManager.updateIcon(false);
     } else {
@@ -107,9 +108,9 @@ public class Main {
     if (isRecording) {
       new Thread(() -> {
         try {
-          Thread.sleep(15000); // 15 segundos
+          Thread.sleep(15000);
           stopRecording();
-          trayIconManager.updateIcon(false); // Atualiza o ícone para estado inativo
+          trayIconManager.updateIcon(false);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
@@ -141,11 +142,25 @@ public class Main {
         }
       });
       recordingThread.start();
-      System.out.println("Gravação iniciada.");
+
     } catch (Exception e) {
       System.err.println("Falha ao iniciar a gravação:");
       e.printStackTrace();
     }
+  }
+
+  @SneakyThrows
+  private static void sayHi() {
+    InputStream audioStream = Main.class.getResourceAsStream("/poisnao.mp3");
+
+    if (audioStream == null) {
+      System.out.println("MP3 file not found in resources.");
+      return;
+    }
+
+    Player player = new Player(audioStream);
+    player.play();
+
   }
 
   /**
@@ -162,7 +177,6 @@ public class Main {
       }
       recordingThread = null;
     }
-    System.out.println("Gravação parada.");
   }
 
   /**

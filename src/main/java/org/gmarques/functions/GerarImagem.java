@@ -6,14 +6,14 @@ import static org.gmarques.util.ProjectRegistry.getFolderStructure;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.SneakyThrows;
-import org.gmarques.model.openai.objects.Tool;
-import org.gmarques.util.ProjectRegistry;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import lombok.SneakyThrows;
+import org.gmarques.model.openai.enums.ModelType;
+import org.gmarques.model.openai.objects.Tool;
+import org.gmarques.util.ProjectRegistry;
 
 public class GerarImagem extends FunctionBase {
 
@@ -101,7 +101,7 @@ public class GerarImagem extends FunctionBase {
                     descricao, folderStructure
                 );
 
-                var response = callOpenAiChat(prompt, "image");
+                var response = callOpenAiChat(prompt, ModelType.image);
                 try {
                     try {
                         java.awt.Desktop desktop = java.awt.Desktop.getDesktop();

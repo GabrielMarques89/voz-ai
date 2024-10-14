@@ -14,6 +14,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
+import org.gmarques.model.openai.enums.ModelType;
 import org.gmarques.model.openai.objects.Tool;
 import org.gmarques.util.ProjectRegistry;
 
@@ -88,7 +89,7 @@ public class EncontrarEstruturaProjeto extends FunctionBase {
         nome_arquivo, folderStructureWithFiles
     );
 
-    var response = callOpenAiChat(prompt, "chat");
+    var response = callOpenAiChat(prompt, ModelType.text);
 
     System.out.println("Resposta com o nome do arquivo: " + response);
 
@@ -103,7 +104,7 @@ public class EncontrarEstruturaProjeto extends FunctionBase {
         descricao_alteracao, conteudoArquivo
     );
 
-    var refactoredContent = callOpenAiChat(promptAlteracao, "chat");
+    var refactoredContent = callOpenAiChat(promptAlteracao, ModelType.text);
     Files.writeString(targetFilePath, refactoredContent, StandardOpenOption.TRUNCATE_EXISTING);
 
     System.out.println("Alterações realizadas com sucesso no arquivo: " + targetFilePath.toString());

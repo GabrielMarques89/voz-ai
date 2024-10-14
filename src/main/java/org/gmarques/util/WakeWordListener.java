@@ -23,7 +23,7 @@ public class WakeWordListener implements AudioCapture.AudioDataListener {
     public WakeWordListener(String accessKey, BuiltInKeyword keywordPath, Runnable onWakeWordDetected) throws PorcupineException, IOException {
         this.onWakeWordDetected = onWakeWordDetected;
 
-        // Initialize Porcupine with the keyword
+        
         porcupine = new Porcupine.Builder()
             .setAccessKey(accessKey)
             .setSensitivity(0.9f)
@@ -38,7 +38,7 @@ public class WakeWordListener implements AudioCapture.AudioDataListener {
      */
     @Override
     public void onAudioData(byte[] data) {
-        // Convert byte array to short array (little-endian)
+        
         short[] pcm = new short[data.length / 2];
         for (int i = 0; i < pcm.length; i++) {
             int low = data[2 * i] & 0xFF;

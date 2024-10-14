@@ -21,4 +21,12 @@ public class ApiKeyLoader {
         }
         return properties.getProperty("porcupine.api.key");
     }
+
+    public static String loadAgiTokenUrl() throws IOException {
+        Properties properties = new Properties();
+        try (FileInputStream input = new FileInputStream("src/main/resources/config.properties")) {
+            properties.load(input);
+        }
+        return properties.getProperty("agi.token.url");
+    }
 }

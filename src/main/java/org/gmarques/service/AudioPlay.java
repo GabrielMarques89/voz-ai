@@ -1,8 +1,14 @@
 package org.gmarques.service;
 
-import javax.sound.sampled.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.SourceDataLine;
+import javazoom.jl.player.Player;
 
 public class AudioPlay {
 
@@ -30,6 +36,17 @@ public class AudioPlay {
     return instance;
   }
 
+  public static void playInputStream(InputStream inputStream) throws IOException {
+    try {
+      Player player = new Player(inputStream);
+      player.play();
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      inputStream.close();
+    }
+  }
+
   public void playAudio(byte[] audioData, AudioFormat format) {
     audioQueue.offer(new AudioData(audioData, format));
   }
@@ -38,7 +55,7 @@ public class AudioPlay {
     Thread playbackThread = new Thread(() -> {
       while (isRunning || !audioQueue.isEmpty()) {
         try {
-          AudioData data = audioQueue.take(); // Bloqueia se a fila estiver vazia
+          AudioData data = audioQueue.take();
           playAudioData(data);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
@@ -92,7 +109,7 @@ public class AudioPlay {
     }
   }
 
-  // Classe interna para encapsular dados de áudio e formato
+
   private static class AudioData {
     byte[] audioData;
     AudioFormat format;

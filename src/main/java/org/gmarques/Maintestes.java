@@ -1,18 +1,18 @@
 package org.gmarques;
 
-import static org.gmarques.util.ProjectRegistry.getFolderStructure;
-import static org.gmarques.util.ProjectRegistry.getFolderStructureWithFiles;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
+import lombok.SneakyThrows;
 
 public class Maintestes {
 
 
+  @SneakyThrows
   public static void main(String[] args) {
-    String directoryPath = "C:\\projetcs\\voz-ai";
-    System.out.println(getFolderStructureWithFiles(directoryPath));
+    Robot robot = new Robot();
 
+    // Press F13 key (KeyEvent.VK_F13 is available from Java 11 onward)
+    robot.keyPress(KeyEvent.VK_F13);
+    robot.keyRelease(KeyEvent.VK_F13);
   }
 }

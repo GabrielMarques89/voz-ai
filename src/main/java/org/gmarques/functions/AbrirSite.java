@@ -2,13 +2,15 @@ package org.gmarques.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.SneakyThrows;
-import org.gmarques.model.openai.objects.Tool;
-
-import java.awt.*;
+import java.awt.Desktop;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import lombok.SneakyThrows;
+import org.gmarques.model.openai.objects.Tool;
+import org.gmarques.personalizations.Websites;
 
 public class AbrirSite extends FunctionBase {
 
@@ -37,7 +39,7 @@ public class AbrirSite extends FunctionBase {
         return Tool.builder()
                 .name(name())
                 .type("function")
-                .description("Abre um site no navegador padrão. Favor fazer uma inferência a respeito da url do site a ser aberto")
+                .description("Abre um site no navegador padrão. Exemplos: " + Websites.siteMap + ". Pode ajustar variáveis dos exemplos, como \"$VARIAVEL$\" de acordo com o prompt. Caso não encontre nos exemplos favor fazer uma inferência a respeito da url em sites comuns")
                 .parameters(Map.of(
                         "type", "object",
                         "properties", Map.of(
@@ -59,15 +61,10 @@ public class AbrirSite extends FunctionBase {
         System.out.println("Site aberto: " + url);
     }
 
-    public static void openWebsite(String url) {
-        try {
-            if (!url.startsWith("http")) {
-                url = "http://" + url;
-            }
-            Desktop.getDesktop().browse(new URI(url));
-        } catch (Exception e) {
-            System.out.println("Erro ao abrir o site: " + e.getMessage());
-            e.printStackTrace();
+    public static void openWebsite(String url) throws URISyntaxException, IOException {
+        if (!url.startsWith("http")) {
+            url = "http://" + url;
         }
+        Desktop.getDesktop().browse(new URI(url));
     }
 }

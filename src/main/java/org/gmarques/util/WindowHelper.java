@@ -27,15 +27,15 @@ public class WindowHelper {
           hwndEncontrado[0] = hWnd;
         }
       }
-      return true; // Continua a enumeração
+      return true; 
     }, null);
 
     HWND hwnd = hwndEncontrado[0];
 
     if (hwnd != null) {
-      // Restaura a janela se estiver minimizada ou maximizada
+      
       user32.ShowWindow(hwnd, User32.SW_RESTORE);
-      // Traz a janela para o primeiro plano
+      
       user32.SetForegroundWindow(hwnd);
       System.out.println("Janela encontrada e foco alterado.");
     } else {

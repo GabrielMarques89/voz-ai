@@ -30,7 +30,7 @@ public class TrayIconManager {
         this.toggleAction = toggleAction;
         isActive = false;
 
-        // Carregue seus ícones aqui. Certifique-se de que os caminhos estejam corretos.
+        
         iconInactive = loadImage("off.ico");
         iconActive = loadImage("on.ico");
 
@@ -42,11 +42,11 @@ public class TrayIconManager {
         trayIcon = new TrayIcon(iconInactive, "Audio Tray App");
         trayIcon.setImageAutoSize(true);
 
-        // Adiciona um menu popup com uma opção para sair
+        
         PopupMenu popup = new PopupMenu();
         MenuItem exitItem = new MenuItem("Exit");
         exitItem.addActionListener(e -> {
-            // Encerra a aplicação
+            
             System.exit(0);
         });
         popup.add(exitItem);

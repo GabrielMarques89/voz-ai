@@ -21,6 +21,9 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("org.reflections:reflections:0.10.2")
     implementation("ai.picovoice:porcupine-java:3.0.3")
+    implementation("javazoom:jlayer:1.0.1")
+
+    implementation("commons-io:commons-io:2.11.0")
 
     implementation("net.java.dev.jna:jna-platform:5.12.1")
 

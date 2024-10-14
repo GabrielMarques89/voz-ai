@@ -41,7 +41,7 @@ public class AudioCapture {
     public AudioCapture(AudioFormat format) throws LineUnavailableException {
         this.audioFormat = format;
 
-        // Select the specific mixer for your microphone
+
         Mixer.Info selectedMixerInfo = null;
         Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
         for (Mixer.Info mixerInfo : mixerInfos) {
@@ -89,11 +89,11 @@ public class AudioCapture {
                 if (count > 0) {
                     byte[] data = new byte[count];
                     System.arraycopy(buffer, 0, data, 0, count);
-                    // Notify all listeners
+
                     for (AudioDataListener listener : listeners) {
                         listener.onAudioData(data);
                     }
-                    // Add to queue for recording
+
                     audioQueue.offer(data);
                 }
             }

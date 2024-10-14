@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
-
 import org.gmarques.model.openai.objects.Tool;
 
 public class AlterarJanela extends FunctionBase {
@@ -51,16 +50,11 @@ public class AlterarJanela extends FunctionBase {
     public void execute(String... parameters) {
         String nomeJanela = parameters[0];
         System.out.println("Alterando para a janela: " + nomeJanela);
-
-        try {
-            String os = System.getProperty("os.name").toLowerCase();
-            if (os.contains("win")) {
-                alterarJanelaWindows(nomeJanela);
-            } else {
-                System.out.println("Esta funcionalidade é suportada apenas no Windows.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            alterarJanelaWindows(nomeJanela);
+        } else {
+            System.out.println("Esta funcionalidade é suportada apenas no Windows.");
         }
     }
 }
