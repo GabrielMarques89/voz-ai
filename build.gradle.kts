@@ -22,7 +22,8 @@ dependencies {
     implementation("org.reflections:reflections:0.10.2")
     implementation("ai.picovoice:porcupine-java:3.0.3")
     implementation("javazoom:jlayer:1.0.1")
-
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
+    implementation("org.apache.commons:commons-math3:3.6.1")
     implementation("commons-io:commons-io:2.11.0")
 
     implementation("net.java.dev.jna:jna-platform:5.12.1")

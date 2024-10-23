@@ -38,7 +38,7 @@ public class Main {
     initializeWebSocket();
     Runtime.getRuntime().addShutdownHook(new Thread(Main::shutdown));
 
-    System.out.println("Audio Tray App está em execução. Diga 'Jarvis' ou pressione F12 para alternar a gravação.");
+    System.out.println("Audio Tray App está em execução. Pressione F14 para alternar a gravação.");
   }
 
   /**
