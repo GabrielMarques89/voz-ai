@@ -91,10 +91,10 @@ public class Main {
    */
   public static synchronized void toggleRecording() {
     if (isRecording) {
-      sayHi();
       stopRecording();
       trayIconManager.updateIcon(false);
     } else {
+      sayHi();
       startRecording();
       trayIconManager.updateIcon(true);
     }
