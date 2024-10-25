@@ -36,9 +36,10 @@ public class Main {
     GlobalShortcutListener shortcutListener = new GlobalShortcutListener(trayIconManager::toggle);
 
     initializeWebSocket();
+    initializeAudioCapture();
     Runtime.getRuntime().addShutdownHook(new Thread(Main::shutdown));
 
-    System.out.println("Audio Tray App está em execução. Pressione F14 para alternar a gravação.");
+    System.out.println("Audio Tray App está em execução. Diga 'Jarvis' ou pressione F12 para alternar a gravação.");
   }
 
   /**
@@ -176,6 +177,22 @@ public class Main {
         Thread.currentThread().interrupt();
       }
       recordingThread = null;
+    }
+  }
+
+  private static void initializeAudioCapture() {
+    try {
+      audioCapture = new AudioCapture(new AudioFormat(
+          16000.0f,
+          16,
+          1,
+          true,
+          false
+      ));
+      audioCapture.start();
+    } catch (LineUnavailableException e) {
+      System.err.println("Falha ao inicializar o AudioCapture:");
+      e.printStackTrace();
     }
   }
 

@@ -1,7 +1,7 @@
 package org.gmarques;
 
-import java.awt.Robot;
-import java.awt.event.KeyEvent;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.SneakyThrows;
 
 public class Maintestes {
@@ -9,10 +9,12 @@ public class Maintestes {
 
   @SneakyThrows
   public static void main(String[] args) {
-    Robot robot = new Robot();
+    var phone = "+5531993166054";
+    String regex = "^\\+\\d{1,3}(\\d{1,4})?\\d{4,10}$";
+    Pattern pattern = Pattern.compile(regex);
+    Matcher matcher = pattern.matcher(phone);
 
-    // Press F13 key (KeyEvent.VK_F13 is available from Java 11 onward)
-    robot.keyPress(KeyEvent.VK_F13);
-    robot.keyRelease(KeyEvent.VK_F13);
+    boolean isValidFormat = matcher.matches();
+    var asd = "";
   }
 }

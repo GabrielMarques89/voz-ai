@@ -18,7 +18,7 @@ import org.gmarques.model.openai.enums.ModelType;
 import org.gmarques.model.openai.objects.Tool;
 import org.gmarques.util.ProjectRegistry;
 
-public class EncontrarEstruturaProjeto extends FunctionBase {
+public class EncontrarEstruturaProjetoParaAlteracaoDeArquivo extends FunctionBase {
 
   public String name() {
     return "alterar_arquivo";

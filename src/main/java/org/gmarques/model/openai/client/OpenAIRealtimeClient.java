@@ -13,6 +13,10 @@ import java.net.URI;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -38,6 +42,14 @@ public class OpenAIRealtimeClient extends WebSocketClient {
       "input_audio_buffer.speech_stopped", "input_audio_buffer.speech_started",
       "response.output_item.added", "response.function_call_arguments.delta");
 
+  // Reconnection parameters
+  private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+  private final AtomicBoolean shouldReconnect = new AtomicBoolean(true);
+  private int reconnectAttempts = 0;
+  private static final int MAX_RECONNECT_ATTEMPTS = 10;
+  private static final long INITIAL_BACKOFF_MS = 1000; // 1 second
+  private static final long MAX_BACKOFF_MS = 60000;    // 60 seconds
+
   public OpenAIRealtimeClient(URI serverUri, Map<String, String> httpHeaders) {
     super(serverUri, httpHeaders);
     mapper = new ObjectMapper();
@@ -52,6 +64,7 @@ public class OpenAIRealtimeClient extends WebSocketClient {
   @Override
   public void onOpen(ServerHandshake handshakedata) {
     System.out.println("Conectado.");
+    reconnectAttempts = 0; // Reset reconnection attempts on successful connection
     sendResponseCreate();
     setupAudioLine();
   }
@@ -78,11 +91,17 @@ public class OpenAIRealtimeClient extends WebSocketClient {
   public void onClose(int code, String reason, boolean remote) {
     System.out.println("Conexão fechada: " + reason);
     closeAudioLineSafely();
+    if (shouldReconnect.get()) {
+      attemptReconnect();
+    }
   }
 
   @Override
   public void onError(Exception ex) {
     System.err.println("Erro na chamada da API: " + ex.getMessage());
+    if (shouldReconnect.get()) {
+      attemptReconnect();
+    }
   }
 
   private void sendResponseCreate() {
@@ -132,7 +151,6 @@ public class OpenAIRealtimeClient extends WebSocketClient {
       JsonNode event = mapper.readTree(message);
       String eventType = event.get("type").asText();
 
-
       if (!IGNORED_EVENTS.contains(eventType)) {
         System.out.println(event.toPrettyString());
       }
@@ -160,7 +178,6 @@ public class OpenAIRealtimeClient extends WebSocketClient {
       System.err.println("Erro ao processar mensagem: " + e.getMessage());
     }
   }
-
 
   private void handleError(JsonNode event) {
     System.err.println("Erro: " + event.get("message").asText());
@@ -208,8 +225,49 @@ public class OpenAIRealtimeClient extends WebSocketClient {
     }
   }
 
-  public void disconnectAndCloseAudio() {
-    this.close();
+  /**
+   * Attempts to reconnect with exponential backoff.
+   */
+  private void attemptReconnect() {
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      System.err.println("Número máximo de tentativas de reconexão atingido. Parando tentativas.");
+      return;
+    }
+
+    reconnectAttempts++;
+    long backoffTime = calculateExponentialBackoff(reconnectAttempts);
+    System.out.println("Tentando reconectar em " + backoffTime + " ms (Tentativa " + reconnectAttempts + ")");
+
+    scheduler.schedule(() -> {
+      try {
+        System.out.println("Tentativa de reconexão #" + reconnectAttempts);
+        reconnect(); // Reconnect using WebSocketClient's reconnect method
+      } catch (Exception e) {
+        System.err.println("Erro ao tentar reconectar: " + e.getMessage());
+        attemptReconnect(); // Schedule next reconnection attempt
+      }
+    }, backoffTime, TimeUnit.MILLISECONDS);
+  }
+
+  /**
+   * Calculates exponential backoff delay.
+   *
+   * @param attempt Current reconnection attempt number.
+   * @return Delay in milliseconds.
+   */
+  private long calculateExponentialBackoff(int attempt) {
+    long delay = INITIAL_BACKOFF_MS * (long) Math.pow(2, attempt - 1);
+    return Math.min(delay, MAX_BACKOFF_MS);
+  }
+
+  /**
+   * Gracefully shuts down the client and stops reconnection attempts.
+   */
+  public void shutdown() {
+    shouldReconnect.set(false);
+    scheduler.shutdownNow();
     closeAudioLineSafely();
+    close();
+    System.out.println("Cliente WebSocket encerrado.");
   }
 }
