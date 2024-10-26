@@ -1,7 +1,6 @@
-package org.gmarques.model.openai.interfaces;
+package org.gmarques.model.interfaces;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gmarques.model.openai.objects.Tool;
 
 public interface FunctionInterface {
@@ -9,5 +8,4 @@ public interface FunctionInterface {
   Tool getTool();
   void run(JsonNode functionArgs);
   void execute(String... parameters);
-  ObjectMapper mapper();
 }

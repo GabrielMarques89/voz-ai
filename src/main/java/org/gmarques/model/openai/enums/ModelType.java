@@ -7,7 +7,7 @@ public enum ModelType {
   text("text", Constants.TEXT_MODEL_URL),
   image("image", Constants.IMAGE_MODEL_URL),
   voice("voice", Constants.VOICE_MODEL_URL),
-  textToSpeech("text-to-speech",Constants.TTS_MODEL_URL);
+  TEXT_TO_SPEECH("text-to-speech",Constants.TTS_MODEL_URL);
 
   private final String value;
   private final String url;

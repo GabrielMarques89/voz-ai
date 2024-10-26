@@ -86,7 +86,7 @@ public class OpenAIService {
         );
         return objectMapper.writeValueAsString(requestData);
       }
-      case ModelType.textToSpeech -> {
+      case ModelType.TEXT_TO_SPEECH -> {
         Map<String, Object> requestData = new HashMap<>();
         requestData.put("model", TTS_MODEL);
         requestData.put("input", prompt);
@@ -115,7 +115,7 @@ public class OpenAIService {
         throw new IOException("Unexpected code " + response);
       }
 
-      if (model == ModelType.textToSpeech) {
+      if (model == ModelType.TEXT_TO_SPEECH) {
         playAudioResponse(response);
         return "Audio played";
       } else {

@@ -19,6 +19,7 @@ public class ProjectRegistry {
 
   static {
     projectMap.put("projeto de voz", "C:\\projetcs\\voz-ai");
+    projectMap.put("projeto de sistema", "C:\\projetcs\\projeto-sistema");
   }
 
   public static String getProjectPath(String projectName) {

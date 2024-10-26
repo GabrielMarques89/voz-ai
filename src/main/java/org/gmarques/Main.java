@@ -1,11 +1,7 @@
 package org.gmarques;
 
 import static org.gmarques.config.ApiKeyLoader.loadApiKey;
-import static org.gmarques.config.ApiKeyLoader.loadPorcupineApiKey;
 
-import ai.picovoice.porcupine.Porcupine.BuiltInKeyword;
-import ai.picovoice.porcupine.PorcupineException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
@@ -20,7 +16,6 @@ import org.gmarques.service.AudioCapture;
 import org.gmarques.util.Constants;
 import org.gmarques.util.GlobalShortcutListener;
 import org.gmarques.util.TrayIconManager;
-import org.gmarques.util.WakeWordListener;
 
 public class Main {
 
@@ -28,18 +23,15 @@ public class Main {
   private static OpenAIRealtimeClient client;
   private static AudioCapture audioCapture;
   private static Thread recordingThread;
-  private static WakeWordListener wakeWordListener;
   private static TrayIconManager trayIconManager;
 
   public static void main(String[] args) {
     trayIconManager = new TrayIconManager(e -> toggleRecording());
-    GlobalShortcutListener shortcutListener = new GlobalShortcutListener(trayIconManager::toggle);
+    new GlobalShortcutListener(trayIconManager::toggle);
 
     initializeWebSocket();
     initializeAudioCapture();
     Runtime.getRuntime().addShutdownHook(new Thread(Main::shutdown));
-
-    System.out.println("Audio Tray App está em execução. Diga 'Jarvis' ou pressione F12 para alternar a gravação.");
   }
 
   /**
@@ -63,30 +55,6 @@ public class Main {
   }
 
   /**
-   * Inicializa o listener para a palavra de ativação "Jarvis".
-   */
-  @SneakyThrows
-  private static void initializeWakeWordListener() {
-    String accessKey = loadPorcupineApiKey();
-
-    try {
-      wakeWordListener = new WakeWordListener(accessKey, BuiltInKeyword.JARVIS, Main::toggleRecordingWithTimer);
-      audioCapture = new AudioCapture(new AudioFormat(
-          16000.0f,
-          16,
-          1,
-          true,
-          false
-      ));
-      audioCapture.addAudioDataListener(wakeWordListener);
-      audioCapture.start();
-    } catch (PorcupineException | IOException | LineUnavailableException e) {
-      System.err.println("Falha ao inicializar o listener da palavra de ativação:");
-      e.printStackTrace();
-    }
-  }
-
-  /**
    * Alterna o estado de gravação e atualiza o TrayIcon.
    */
   public static synchronized void toggleRecording() {
@@ -97,25 +65,6 @@ public class Main {
       sayHi();
       startRecording();
       trayIconManager.updateIcon(true);
-    }
-  }
-
-  /**
-   * Alterna a gravação e define um temporizador para parar após 15 segundos.
-   */
-  private static synchronized void toggleRecordingWithTimer() {
-    toggleRecording();
-
-    if (isRecording) {
-      new Thread(() -> {
-        try {
-          Thread.sleep(15000);
-          stopRecording();
-          trayIconManager.updateIcon(false);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
-      }).start();
     }
   }
 
@@ -209,9 +158,6 @@ public class Main {
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
-    }
-    if (wakeWordListener != null) {
-      wakeWordListener.stop();
     }
     if (audioCapture != null) {
       audioCapture.stop();

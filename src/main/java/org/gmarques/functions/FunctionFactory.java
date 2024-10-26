@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.gmarques.model.openai.interfaces.FunctionInterface;
+import org.gmarques.model.interfaces.FunctionInterface;
 import org.reflections.Reflections;
 
 public class FunctionFactory {

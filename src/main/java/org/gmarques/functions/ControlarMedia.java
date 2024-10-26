@@ -1,104 +1,84 @@
 package org.gmarques.functions;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef.DWORD;
-import com.sun.jna.platform.win32.WinDef.WORD;
-import com.sun.jna.platform.win32.WinUser.INPUT;
-import com.sun.jna.platform.win32.WinUser.KEYBDINPUT;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import java.util.Map;
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.gmarques.model.interfaces.MediaController;
 import org.gmarques.model.openai.objects.Tool;
+import org.gmarques.util.WindowsMediaController;
 
+@Slf4j
 public class ControlarMedia extends FunctionBase {
-    private static final int KEYEVENTF_KEYUP = 0x0002;
+    private final MediaController mediaController;
 
+    public ControlarMedia(ObjectMapper objectMapper) {
+        super(objectMapper);
+        this.mediaController = createMediaController();
+    }
 
+    @Override
     public String name() {
         return "controlar_media";
     }
 
     @Override
-    public void run(JsonNode functionArgs){
-        JsonNode parsedArgs = null;
+    public void run(JsonNode functionArgs) {
         try {
-            parsedArgs = mapper().readTree(functionArgs.asText());
-            String consulta = parsedArgs.get("acao").asText();
-            System.out.println("Função chamada: " + this.name());
-            System.out.println("Parâmetro: " + consulta);
-            execute(consulta);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            String acao = functionArgs.get("acao").asText();
+            log.info("Função chamada: {}", name());
+            log.info("Parâmetro: {}", acao);
+            execute(acao);
+        } catch (Exception e) {
+            handleException(e);
         }
     }
 
+    @Override
     public Tool getTool() {
         return Tool.builder()
-            .name(name())
-            .type(FUNCTION)
-            .description("Controla a reprodução de mídia e o volume do computador com base na ação fornecida.")
-            .parameters(Map.of(
-                "type", "object",
-                "properties", Map.of(
-                    "acao", Map.of(
-                        "type", "string",
-                        "description", "A ação a ser executada no controle de mídia. Valores possíveis: 'play_pause', 'proxima_musica', 'volume_maximo', 'aumentar_volume', 'diminuir_volume'."
-                    )
-                ),
-                "required", List.of("acao")
-            ))
-            .build();
+                .name(name())
+                .type("function")
+                .description("Controla a reprodução de mídia e o volume do computador com base na ação fornecida.")
+                .parameters(Map.of(
+                        "type", "object",
+                        "properties", Map.of(
+                                "acao", Map.of(
+                                        "type", "string",
+                                        "description", "A ação a ser executada no controle de mídia. Valores possíveis: 'play_pause', 'proxima_musica', 'volume_maximo', 'aumentar_volume', 'diminuir_volume'."
+                                )
+                        ),
+                        "required", Collections.singletonList("acao")
+                ))
+                .build();
     }
 
-    @SneakyThrows
     @Override
     public void execute(String... parameters) {
         String acao = parameters[0];
-        System.out.println("Executando ação de mídia: " + acao);
+        try {
+            mediaController.executeAction(acao);
+        } catch (Exception e) {
+            log.error("Erro ao executar ação de mídia: {}", acao, e);
+            handleException(e);
+        }
+    }
 
+    private MediaController createMediaController() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
-            controlarMediaWindows(acao);
+            return new WindowsMediaController();
         } else {
-            System.out.println("Sistema operacional não suportado para controle de mídia.");
-        }
-
-    }
-
-    private void controlarMediaWindows(String acao) throws Exception {
-        switch (acao) {
-            case "play_pause":
-                sendMediaKeyWindows(0xB3);
-                break;
-            case "proxima_musica":
-                sendMediaKeyWindows(0xB0);
-                break;
-            case "volume_maximo":
-                Runtime.getRuntime().exec("nircmd.exe setsysvolume 65535");
-                break;
-            case "aumentar_volume":
-                Runtime.getRuntime().exec("nircmd.exe changesysvolume 5000");
-                break;
-            case "diminuir_volume":
-                Runtime.getRuntime().exec("nircmd.exe changesysvolume -5000");
-                break;
-            default:
-                System.out.println("Ação não reconhecida.");
+            log.warn("Sistema operacional não suportado para controle de mídia: {}", os);
+            return new UnsupportedMediaController();
         }
     }
 
-    private void sendMediaKeyWindows(int keyCode) {
-        INPUT input = new INPUT();
-        input.type = new DWORD(INPUT.INPUT_KEYBOARD);
-        input.input.setType("ki");
-        input.input.ki = new KEYBDINPUT();
-        input.input.ki.wVk = new WORD(keyCode);
-        input.input.ki.dwFlags = new DWORD(0);
-
-        User32.INSTANCE.SendInput(new DWORD(1), new INPUT[]{input}, input.size());
-        input.input.ki.dwFlags = new DWORD(KEYEVENTF_KEYUP);
-        User32.INSTANCE.SendInput(new DWORD(1), new INPUT[]{input}, input.size());
+    private static class UnsupportedMediaController implements MediaController {
+        @Override
+        public void executeAction(String action) throws UnsupportedOperationException {
+            throw new UnsupportedOperationException("Controle de mídia não suportado neste sistema operacional.");
+        }
     }
 }
