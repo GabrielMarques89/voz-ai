@@ -13,7 +13,6 @@ import lombok.SneakyThrows;
 import org.gmarques.model.openai.objects.Tool;
 
 public class DigitarTexto extends FunctionBase {
-
   public String name() {
     return "digitar_texto";
   }

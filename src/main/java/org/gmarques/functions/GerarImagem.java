@@ -16,7 +16,6 @@ import org.gmarques.model.openai.objects.Tool;
 import org.gmarques.util.ProjectRegistry;
 
 public class GerarImagem extends FunctionBase {
-
     @Override
     public String name() {
         return "gerar_imagem";

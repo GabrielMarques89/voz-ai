@@ -1,7 +1,6 @@
 package org.gmarques.functions;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +12,7 @@ import org.gmarques.util.WindowsMediaController;
 public class ControlarMedia extends FunctionBase {
     private final MediaController mediaController;
 
-    public ControlarMedia(ObjectMapper objectMapper) {
-        super(objectMapper);
+    public ControlarMedia() {
         this.mediaController = createMediaController();
     }
 

@@ -1,11 +1,11 @@
 package org.gmarques.functions;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
 import org.gmarques.model.openai.objects.Tool;
 
 public class PesquisarLocal extends FunctionBase {
-
   public String name() {
     return "pesquisar_local";
   }
@@ -26,6 +26,20 @@ public class PesquisarLocal extends FunctionBase {
             "required", List.of("consulta")
         ))
         .build();
+  }
+
+  @Override
+  public void run(JsonNode functionArgs){
+    JsonNode parsedArgs = null;
+    try {
+      parsedArgs = mapper().readTree(functionArgs.asText());
+      String consulta = parsedArgs.get("consulta").asText();
+      System.out.println("Função chamada: " + name());
+      System.out.println("Parâmetro: " + consulta);
+      execute(consulta);
+    } catch (Exception e) {
+      handleException(e);
+    }
   }
 
   @Override

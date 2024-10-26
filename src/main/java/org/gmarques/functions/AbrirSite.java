@@ -13,7 +13,6 @@ import org.gmarques.model.openai.objects.Tool;
 import org.gmarques.personalizations.Websites;
 
 public class AbrirSite extends FunctionBase {
-
     @Override
     public String name() {
         return "abrir_site";

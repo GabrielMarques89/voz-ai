@@ -9,7 +9,6 @@ import java.util.Map;
 import org.gmarques.model.openai.objects.Tool;
 
 public class AlterarJanela extends FunctionBase {
-
     public String name() {
         return "alterar_janela";
     }
@@ -17,7 +16,7 @@ public class AlterarJanela extends FunctionBase {
     public Tool getTool() {
         return Tool.builder()
             .name(name())
-            .type(FUNCTION)
+            .type("function")
             .description("Altera a janela ativa no Windows com base no nome do aplicativo ou título da janela fornecido.")
             .parameters(Map.of(
                 "type", "object",

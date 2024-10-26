@@ -25,7 +25,7 @@ dependencies {
     implementation("org.apache.poi:poi-ooxml:5.2.3")
     implementation("org.apache.commons:commons-math3:3.6.1")
     implementation("commons-io:commons-io:2.11.0")
-
+    implementation("dev.langchain4j:langchain4j:0.35.0")
     implementation("net.java.dev.jna:jna-platform:5.12.1")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))

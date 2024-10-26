@@ -2,13 +2,14 @@ package org.gmarques.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.jna.platform.win32.*;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinDef.HWND;
-import lombok.SneakyThrows;
-import org.gmarques.model.openai.objects.Tool;
-
+import com.sun.jna.platform.win32.WinUser;
 import java.util.List;
 import java.util.Map;
+import lombok.SneakyThrows;
+import org.gmarques.model.openai.objects.Tool;
 
 public class ControlarMonitor extends FunctionBase {
     private static final int SC_MONITORPOWER = 0xF170;

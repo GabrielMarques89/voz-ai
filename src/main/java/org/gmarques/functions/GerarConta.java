@@ -7,7 +7,6 @@ import org.gmarques.AccountCreationPostmanRunner;
 import org.gmarques.model.openai.objects.Tool;
 
 public class GerarConta extends FunctionBase {
-
     @Override
     public String name() {
         return "gerar_conta";

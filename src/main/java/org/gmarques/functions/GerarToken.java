@@ -17,7 +17,6 @@ import okhttp3.RequestBody;
 import org.gmarques.model.openai.objects.Tool;
 
 public class GerarToken extends FunctionBase {
-
     @Override
     public String name() {
         return "gerar_token_dev";

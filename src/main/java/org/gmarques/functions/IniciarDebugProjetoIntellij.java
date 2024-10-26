@@ -5,15 +5,15 @@ import static org.gmarques.util.WindowHelper.alterarJanelaWindows;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 import lombok.SneakyThrows;
 import org.gmarques.model.openai.objects.Tool;
 import org.gmarques.util.ProjectRegistry;
-
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.util.List;
-import java.util.Map;
 
 public class IniciarDebugProjetoIntellij extends FunctionBase {
 

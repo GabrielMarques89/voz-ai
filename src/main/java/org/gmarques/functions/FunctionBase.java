@@ -8,11 +8,8 @@ import org.gmarques.model.openai.enums.ModelType;
 
 @Slf4j
 public abstract class FunctionBase implements FunctionInterface {
-    protected final ObjectMapper objectMapper;
-
-    protected FunctionBase(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
+    protected final String FUNCTION = "function";
+    protected final ObjectMapper objectMapper = new ObjectMapper();
 
     protected void handleException(Exception e) {
         String errorMessage = "Ocorreu um erro na execução da função " + name() + ": " + e.getClass().getSimpleName();
