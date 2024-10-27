@@ -1,59 +1,41 @@
 package org.gmarques.functions;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
-import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
-import org.gmarques.model.openai.objects.Tool;
+import lombok.extern.log4j.Log4j2;
+import org.gmarques.util.ParameterBuilder;
 
+@Log4j2
 public class DigitarTexto extends FunctionBase {
+
+  @Override
   public String name() {
     return "digitar_texto";
   }
 
-  public Tool getTool() {
-    return Tool.builder()
-        .name(name())
-        .type(FUNCTION)
-        .description("Simula a digitação de texto no teclado.")
-        .parameters(Map.of(
-            "type", "object",
-            "properties", Map.of(
-                "texto", Map.of(
-                    "type", "string",
-                    "description", "O texto a ser digitado."
-                )
-            ),
-            "required", List.of("texto")
-        ))
+  @Override
+  public String description() {
+    return "Simula a digitação de texto no teclado.";
+  }
+
+  @Override
+  public Map<String, Object> parameters() {
+    return new ParameterBuilder()
+        .addParameter("texto", "string", "O texto a ser digitado.")
+        .addRequired("texto")
         .build();
   }
 
   @Override
-  public void run(JsonNode functionArgs) {
-    JsonNode parsedArgs = null;
-    try {
-      parsedArgs = mapper().readTree(functionArgs.asText());
-      String consulta = parsedArgs.get("texto").asText();
-      System.out.println("Função chamada: " + this.name());
-      System.out.println("Parâmetro: " + consulta);
-      execute(consulta);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
-  }
+  protected void execute(JsonNode functionArgs) throws Exception {
+    String texto = functionArgs.get("texto").asText();
+    log.info("Executing function {}: texto={}", name(), texto);
 
-  @SneakyThrows
-  @Override
-  public void execute(String... parameters) {
-    String texto = parameters[0];
-    System.out.println("Digitando texto: " + texto);
     String os = System.getProperty("os.name").toLowerCase();
     Robot robot = new Robot();
 
@@ -72,7 +54,7 @@ public class DigitarTexto extends FunctionBase {
       robot.keyRelease(KeyEvent.VK_V);
       robot.keyRelease(KeyEvent.VK_META);
     } else {
-      System.out.println("Sistema operacional não suportado para digitar texto.");
+      log.warn("Sistema operacional não suportado para digitar texto.");
     }
   }
 }

@@ -1,31 +1,39 @@
 package org.gmarques.functions;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.gmarques.model.interfaces.FunctionInterface;
-import org.gmarques.model.openai.client.OpenAIService;
-import org.gmarques.model.openai.enums.ModelType;
+import org.gmarques.model.openai.objects.Tool;
+import org.gmarques.util.ErrorMessenger;
 
 @Slf4j
 public abstract class FunctionBase implements FunctionInterface {
-    protected final String FUNCTION = "function";
     protected final ObjectMapper objectMapper = new ObjectMapper();
 
-    protected void handleException(Exception e) {
-        String errorMessage = "Ocorreu um erro na execução da função " + name() + ": " + e.getClass().getSimpleName();
-        log.error(errorMessage, e);
-        sendErrorMessageToOpenAI(errorMessage);
-    }
-
-    private void sendErrorMessageToOpenAI(String message) {
+    @Override
+    public void run(JsonNode functionArgs) {
         try {
-            OpenAIService.callOpenAiChat(message, ModelType.TEXT_TO_SPEECH);
-        } catch (Exception ex) {
-            log.error("Falha ao enviar mensagem de erro para o OpenAI", ex);
+            execute(functionArgs);
+        } catch (Exception e) {
+            handleException(e);
         }
     }
 
-    public ObjectMapper mapper() {
-        return objectMapper;
+    protected abstract void execute(JsonNode functionArgs) throws Exception;
+
+    protected void handleException(Exception e) {
+        String errorMessage = "An error occurred in function " + name() + ": " + e.getMessage();
+        log.error(errorMessage, e);
+        ErrorMessenger.sendErrorMessageToOpenAI(errorMessage);
+    }
+
+    public Tool getTool() {
+        return Tool.builder()
+            .name(name())
+            .type("function")
+            .description(description())
+            .parameters(parameters())
+            .build();
     }
 }

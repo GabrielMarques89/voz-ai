@@ -1,43 +1,32 @@
 package org.gmarques.functions;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.List;
 import java.util.Map;
+import lombok.extern.log4j.Log4j2;
 import org.gmarques.AccountCreationPostmanRunner;
-import org.gmarques.model.openai.objects.Tool;
+import org.gmarques.util.ParameterBuilder;
 
+@Log4j2
 public class GerarConta extends FunctionBase {
+
     @Override
     public String name() {
         return "gerar_conta";
     }
 
     @Override
-    public void run(JsonNode functionArgs) {
-        System.out.println("Função chamada: " + name());
-        execute();
+    public String description() {
+        return "Gera uma conta corrente do AGI e copia o CPF para a área de transferência do Windows.";
     }
 
     @Override
-    public Tool getTool() {
-        return Tool.builder()
-                .name(name())
-                .type("function")
-                .description("Gera uma conta corrente do AGI e o copia o CPF para a área de transferência do Windows.")
-                .parameters(Map.of(
-                        "type", "object",
-                        "properties", Map.of(),
-                        "required", List.of()
-                ))
-                .build();
+    public Map<String, Object> parameters() {
+        return new ParameterBuilder().build();
     }
 
     @Override
-    public void execute(String... parameters) {
-        try {
-            AccountCreationPostmanRunner.createAccount();
-        } catch (Exception e) {
-            handleException(e);
-        }
+    protected void execute(JsonNode functionArgs) throws Exception {
+        log.info("Executing function {}", name());
+        AccountCreationPostmanRunner.createAccount();
     }
 }

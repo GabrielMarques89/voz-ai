@@ -1,59 +1,46 @@
 package org.gmarques.functions;
 
-import static org.gmarques.config.ApiKeyLoader.loadAgiTokenUrl;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.log4j.Log4j2;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.gmarques.model.openai.objects.Tool;
+import org.gmarques.util.ParameterBuilder;
 
+@Log4j2
 public class GerarToken extends FunctionBase {
+
     @Override
     public String name() {
         return "gerar_token_dev";
     }
 
     @Override
-    public void run(JsonNode functionArgs) {
-        System.out.println("Função chamada: " + name());
-        execute();
+    public String description() {
+        return "Gera um token de serviço do AGI e o copia para a área de transferência do Windows.";
     }
 
     @Override
-    public Tool getTool() {
-        return Tool.builder()
-                .name(name())
-                .type("function")
-                .description("Gera um token de serviço do AGI e o copia para a área de transferência do Windows.")
-                .parameters(Map.of(
-                        "type", "object",
-                        "properties", Map.of(),
-                        "required", List.of()
-                ))
-                .build();
+    public Map<String, Object> parameters() {
+        return new ParameterBuilder().build(); // No parameters
     }
 
     @Override
-    public void execute(String... parameters) {
-        try {
-            String clientToken = getClientToken();
-            copyToClipboard(clientToken);
-            System.out.println("Client token copiado para a área de transferência: " + clientToken);
-        } catch (Exception e) {
-            handleException(e);
-        }
+    protected void execute(JsonNode functionArgs) throws Exception {
+        log.info("Executing function {}", name());
+        String clientToken = getClientToken();
+        copyToClipboard(clientToken);
+        log.info("Client token copiado para a área de transferência: {}", clientToken);
     }
 
-    public String getClientToken() throws Exception {
+    private String getClientToken() throws Exception {
         String url = loadAgiTokenUrl();
         String jsonInputString = "{\"role_id\":\"token4devs\"}";
 
@@ -77,14 +64,18 @@ public class GerarToken extends FunctionBase {
         }
 
         String responseBody = response.body().string();
-        JsonNode jsonNode = mapper().readTree(responseBody);
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
         return jsonNode.get("auth").get("client_token").asText();
     }
-
 
     private void copyToClipboard(String text) {
         StringSelection selection = new StringSelection(text);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(selection, null);
+    }
+
+    private String loadAgiTokenUrl() {
+        // Implement method to load AGI token URL
+        return "";
     }
 }

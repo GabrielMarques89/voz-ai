@@ -1,17 +1,15 @@
 package org.gmarques.functions;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Collections;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.gmarques.model.interfaces.MediaController;
-import org.gmarques.model.openai.objects.Tool;
+import org.gmarques.util.ParameterBuilder;
 import org.gmarques.util.WindowsMediaController;
 
 @Slf4j
 public class ControlarMedia extends FunctionBase {
     private final MediaController mediaController;
-
     public ControlarMedia() {
         this.mediaController = createMediaController();
     }
@@ -22,45 +20,23 @@ public class ControlarMedia extends FunctionBase {
     }
 
     @Override
-    public void run(JsonNode functionArgs) {
-        try {
-            String acao = functionArgs.get("acao").asText();
-            log.info("Função chamada: {}", name());
-            log.info("Parâmetro: {}", acao);
-            execute(acao);
-        } catch (Exception e) {
-            handleException(e);
-        }
+    public String description() {
+        return "Controla a reprodução de mídia e o volume do computador com base na ação fornecida.";
     }
 
     @Override
-    public Tool getTool() {
-        return Tool.builder()
-                .name(name())
-                .type("function")
-                .description("Controla a reprodução de mídia e o volume do computador com base na ação fornecida.")
-                .parameters(Map.of(
-                        "type", "object",
-                        "properties", Map.of(
-                                "acao", Map.of(
-                                        "type", "string",
-                                        "description", "A ação a ser executada no controle de mídia. Valores possíveis: 'play_pause', 'proxima_musica', 'volume_maximo', 'aumentar_volume', 'diminuir_volume'."
-                                )
-                        ),
-                        "required", Collections.singletonList("acao")
-                ))
-                .build();
+    public Map<String, Object> parameters() {
+        return new ParameterBuilder()
+            .addParameter("acao", "string", "A ação a ser executada no controle de mídia. Valores possíveis: 'play_pause', 'proxima_musica', 'volume_maximo', 'aumentar_volume', 'diminuir_volume'.")
+            .addRequired("acao")
+            .build();
     }
 
     @Override
-    public void execute(String... parameters) {
-        String acao = parameters[0];
-        try {
-            mediaController.executeAction(acao);
-        } catch (Exception e) {
-            log.error("Erro ao executar ação de mídia: {}", acao, e);
-            handleException(e);
-        }
+    protected void execute(JsonNode functionArgs) throws Exception {
+        String acao = functionArgs.get("acao").asText();
+        log.info("Executing function {}: acao={}", name(), acao);
+        mediaController.executeAction(acao);
     }
 
     private MediaController createMediaController() {
