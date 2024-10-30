@@ -11,7 +11,7 @@ public class FunctionFactory {
     public static final Map<String, FunctionInterface> functionMap = new HashMap<>();
 
     static {
-        Reflections reflections = new Reflections("org.gmarques.functions");
+        Reflections reflections = new Reflections("org.gmarques.functions.account", "org.gmarques.functions.project", "org.gmarques.functions.system", "org.gmarques.functions.web");
 
         Set<Class<? extends FunctionBase>> classes = reflections.getSubTypesOf(FunctionBase.class);
 

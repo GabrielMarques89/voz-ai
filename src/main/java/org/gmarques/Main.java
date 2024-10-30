@@ -1,6 +1,6 @@
 package org.gmarques;
 
-import static org.gmarques.config.ApiKeyLoader.loadApiKey;
+import static org.gmarques.util.ApiKeyLoader.loadApiKey;
 
 import java.io.InputStream;
 import java.net.URI;
